@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon RNG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ==================== TOP BAR ==================== -->
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <span class="game-title">Pokémon RNG</span>
+        </div>
+        <div class="top-bar-right">
+            <div class="area-display" id="area-display-btn" title="클릭 시 즉시 다음 지역으로 변경">
+                <span class="area-icon">🗺️</span>
+                <span class="area-name" id="current-area-name">평원</span>
+                <span class="area-timer" id="area-timer-value">05:00</span>
+            </div>
+            <div class="currency-display">
+                <span class="currency-icon">🔷</span>
+                <span class="currency-label">A_Shards</span>
+                <span class="currency-value" id="a-shards-value">0</span>
+            </div>
+            <div class="stat-display">
+                <span class="stat-icon">🎲</span>
+                <span class="stat-label">Total Rolls</span>
+                <span class="stat-value" id="total-rolls-value">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Shiny Cheat Indicator Banner -->
+    <div id="shiny-cheat-indicator" class="shiny-cheat-indicator">
+        ✨ 확정 이로치(SHINY) 치트 활성화됨! (다음 롤 100% 확정) ✨
+    </div>
+
+    <!-- ==================== SIDE MENU ==================== -->
+    <nav class="side-menu">
+        <button class="side-menu-btn inventory-btn" id="inventory-btn">
+            <span class="side-icon">🎒</span>
+            <span class="side-label">보관함</span>
+        </button>
+        <button class="side-menu-btn collection-btn" id="collection-btn">
+            <span class="side-icon">📖</span>
+            <span class="side-label">도감</span>
+        </button>
+        <button class="side-menu-btn workspace-btn" id="workspace-btn">
+            <span class="side-icon">🏠</span>
+            <span class="side-label">작업실</span>
+        </button>
+        <button class="side-menu-btn settings-btn" id="settings-btn">
+            <span class="side-icon">⚙️</span>
+            <span class="side-label">설정</span>
+        </button>
+    </nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="main-content">
+        <!-- Arena Background Backdrop -->
+        <div class="arena-bg-layer" id="arena-bg-layer"></div>
+
+        <!-- Roll Result Display -->
+        <section class="roll-display">
+            <!-- Stage Area (Ball & Animated Pokemon share this space) -->
+            <div class="stage-container" id="stage-container">
+                <!-- Arena Platform Layer (Placed under the Pokeball/Pokemon) -->
+                <div class="arena-platform-layer" id="arena-platform-layer">
+                    <img class="arena-platform-base" id="arena-platform-base" src="asset/arenas/plains_b.png" alt="Platform Base">
+                    <img class="arena-platform-decor" id="arena-platform-decor" src="asset/arenas/plains_b_1.png" alt="Platform Decor">
+                </div>
+
+                <!-- Shiny Flash & Sparkles Layer -->
+                <div class="shiny-flash-overlay" id="shiny-flash-overlay"></div>
+                <div class="shiny-particles-container" id="shiny-particles-container"></div>
+
+                <!-- Ball Display -->
+                <div class="ball-stage" id="ball-stage">
+                    <img class="ball-img" id="ball-img" src="asset/pokeball/pb.png" alt="Pokéball">
+                </div>
+
+                <!-- Animated Pokemon Canvas -->
+                <div class="pokemon-reveal" id="pokemon-reveal" style="display:none;">
+                    <div class="pokemon-sprite-container" id="pokemon-sprite-container">
+                        <canvas id="pokemon-canvas" class="pokemon-canvas"></canvas>
+                        <img class="pokemon-sprite" id="pokemon-sprite" src="" alt="" style="display:none;">
+                        <span class="shiny-badge" id="shiny-badge" style="display:none;">✨ ⭐ SHINY! ⭐ ✨</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roll Info Panel -->
+            <div class="roll-info-panel">
+                <div class="roll-info-row" id="roll-ball-info">
+                    <span class="info-label">볼</span>
+                    <span class="info-value" id="result-ball">—</span>
+                </div>
+                <div class="roll-info-row" id="roll-type-info">
+                    <span class="info-label">타입</span>
+                    <span class="info-value" id="result-type">—</span>
+                </div>
+                <div class="roll-info-row" id="roll-tier-info">
+                    <span class="info-label">등급</span>
+                    <span class="info-value" id="result-tier">—</span>
+                </div>
+                <div class="roll-info-row" id="roll-pokemon-info">
+                    <span class="info-label">포켓몬</span>
+                    <span class="info-value" id="result-pokemon">—</span>
+                </div>
+                <div class="roll-info-row" id="roll-gender-info">
+                    <span class="info-label">성별</span>
+                    <span class="info-value" id="result-gender">—</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roll Controls -->
+        <section class="roll-controls">
+            <button class="roll-btn" id="roll-button">ROLL</button>
+            <button class="auto-roll-toggle" id="auto-roll-toggle">AUTO ROLL: OFF</button>
+        </section>
+    </main>
+
+    <!-- ==================== OVERLAY PANELS ==================== -->
+
+    <!-- Inventory (보관함) Panel -->
+    <div id="inventory-panel" class="overlay-panel">
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>보관함</h2>
+                <button class="close-panel">&times;</button>
+            </div>
+            <div class="inventory-grid" id="inventory-grid">
+                <!-- 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection (도감) Panel -->
+    <div id="collection-panel" class="overlay-panel">
+        <div class="panel-content" style="max-width: 1100px;">
+            <div class="panel-header">
+                <h2>포켓몬 도감</h2>
+                <button class="close-panel">&times;</button>
+            </div>
+            <div class="pokedex-controls">
+                <div class="pokedex-filter-row">
+                    <select id="pokedex-type-filter" class="pokedex-select">
+                        <option value="all">모든 타입</option>
+                    </select>
+                    <select id="pokedex-tier-filter" class="pokedex-select">
+                        <option value="all">모든 등급</option>
+                    </select>
+                    <select id="pokedex-gen-filter" class="pokedex-select">
+                        <option value="all">모든 세대</option>
+                        <option value="1">1세대</option>
+                        <option value="2">2세대</option>
+                        <option value="3">3세대</option>
+                        <option value="4">4세대</option>
+                        <option value="5">5세대</option>
+                        <option value="6">6세대</option>
+                        <option value="7">7세대</option>
+                        <option value="8">8세대</option>
+                        <option value="9">9세대</option>
+                    </select>
+                </div>
+                <div class="pokedex-stats">
+                    <span id="pokedex-discovered">발견: 0</span>
+                    <span id="pokedex-total">/ 0</span>
+                </div>
+            </div>
+            <div class="pokedex-grid" id="pokedex-grid">
+                <!-- 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace (작업실) Panel -->
+    <div id="workspace-panel" class="overlay-panel">
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>작업실</h2>
+                <button class="close-panel">&times;</button>
+            </div>
+            <div class="workspace-content">
+                <div class="workspace-stats-bar">
+                    <div class="workspace-stat-box">
+                        <span class="workspace-stat-label">INCOME</span>
+                        <span class="workspace-stat-value" id="workspace-income-val">+0 / sec</span>
+                    </div>
+                    <div class="workspace-stat-box">
+                        <span class="workspace-stat-label">WORKERS</span>
+                        <span class="workspace-stat-value" id="workspace-workers-val">0 / 5</span>
+                    </div>
+                </div>
+                <div class="workspace-grid" id="workspace-grid">
+                    <div class="workspace-card" data-ws-slot="0">
+                        <div class="ws-slot-preview" id="ws-preview-0">
+                            <span class="ws-slot-icon">🏠</span>
+                        </div>
+                        <div class="ws-slot-info">
+                            <span class="ws-slot-name" id="ws-name-0">EMPTY</span>
+                            <span class="ws-slot-rate" id="ws-rate-0">+0/s</span>
+                        </div>
+                        <button class="ws-assign-btn" id="ws-btn-0">배치</button>
+                    </div>
+                    <div class="workspace-card" data-ws-slot="1">
+                        <div class="ws-slot-preview" id="ws-preview-1">
+                            <span class="ws-slot-icon">🏠</span>
+                        </div>
+                        <div class="ws-slot-info">
+                            <span class="ws-slot-name" id="ws-name-1">EMPTY</span>
+                            <span class="ws-slot-rate" id="ws-rate-1">+0/s</span>
+                        </div>
+                        <button class="ws-assign-btn" id="ws-btn-1">배치</button>
+                    </div>
+                    <div class="workspace-card" data-ws-slot="2">
+                        <div class="ws-slot-preview" id="ws-preview-2">
+                            <span class="ws-slot-icon">🏠</span>
+                        </div>
+                        <div class="ws-slot-info">
+                            <span class="ws-slot-name" id="ws-name-2">EMPTY</span>
+                            <span class="ws-slot-rate" id="ws-rate-2">+0/s</span>
+                        </div>
+                        <button class="ws-assign-btn" id="ws-btn-2">배치</button>
+                    </div>
+                    <div class="workspace-card" data-ws-slot="3">
+                        <div class="ws-slot-preview" id="ws-preview-3">
+                            <span class="ws-slot-icon">🏠</span>
+                        </div>
+                        <div class="ws-slot-info">
+                            <span class="ws-slot-name" id="ws-name-3">EMPTY</span>
+                            <span class="ws-slot-rate" id="ws-rate-3">+0/s</span>
+                        </div>
+                        <button class="ws-assign-btn" id="ws-btn-3">배치</button>
+                    </div>
+                    <div class="workspace-card" data-ws-slot="4">
+                        <div class="ws-slot-preview" id="ws-preview-4">
+                            <span class="ws-slot-icon">🏠</span>
+                        </div>
+                        <div class="ws-slot-info">
+                            <span class="ws-slot-name" id="ws-name-4">EMPTY</span>
+                            <span class="ws-slot-rate" id="ws-rate-4">+0/s</span>
+                        </div>
+                        <button class="ws-assign-btn" id="ws-btn-4">배치</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace Select Modal -->
+    <div id="workspace-select-modal" class="overlay-panel">
+        <div class="panel-content" style="max-width: 700px;">
+            <div class="panel-header">
+                <h2>포켓몬 배치 선택</h2>
+                <button class="close-panel" id="close-ws-modal">&times;</button>
+            </div>
+            <div class="inventory-grid" id="ws-select-grid">
+                <!-- 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="overlay-panel">
+        <div class="panel-content" style="max-width: 500px;">
+            <div class="panel-header">
+                <h2>설정</h2>
+                <button class="close-panel">&times;</button>
+            </div>
+            <div class="settings-content">
+                <p style="color: var(--text-secondary); text-align: center;">준비 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Detail Modal -->
+    <div id="inventory-detail-modal" class="overlay-panel">
+        <div class="panel-content" style="max-width: 450px;">
+            <div class="panel-header">
+                <h2>포켓몬 관리</h2>
+                <button class="close-panel" id="close-inv-detail">&times;</button>
+            </div>
+            <div class="inv-detail-content">
+                <div class="inv-detail-pokemon">
+                    <canvas class="inv-detail-canvas" id="inv-detail-canvas"></canvas>
+                    <img class="inv-detail-sprite" id="inv-detail-sprite" src="" alt="" style="display:none;">
+                    <div class="inv-detail-info">
+                        <span class="inv-detail-name" id="inv-detail-name">—</span>
+                        <span class="inv-detail-type" id="inv-detail-type">—</span>
+                        <span class="inv-detail-tier" id="inv-detail-tier">—</span>
+                        <span class="inv-detail-gender" id="inv-detail-gender">—</span>
+                    </div>
+                </div>
+                <div class="inv-detail-actions">
+                    <button class="inv-action-btn" id="inv-release-btn">놓아주기</button>
+                    <button class="inv-action-btn cancel" id="inv-cancel-btn">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="pokemon-data.js"></script>
+    <script src="pokemon-atlas.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+/* ==========================================
+   ✨ AURA SPECIAL EFFECTS STYLESHEET (effects.css)
+   ==========================================
+   이 파일은 희귀도가 높은 등급(영웅, 신화, 전설) 아우라의
+   특별 비주얼 효과들을 관리하는 전용 CSS 파일입니다.
+*/
+
+/* ------------------------------------------
+   0. 공통 이펙트 컨테이너 레이아웃 (Layout)
+   ------------------------------------------
+   - 아우라를 표시하는 부모 영역(.aura-display)을 상대 좌표(relative)로 정하여
+     이펙트 배경(.aura-effect-bg)이 항상 아우라 텍스트 뒤 정중앙에 올 수 있도록 설정합니다.
+*/
+.aura-display {
+    position: relative;
+}
+
+.aura-effect-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 280px;
+    height: 280px;
+    pointer-events: none; /* 마우스 클릭 등을 방해하지 않도록 마우스 이벤트를 무시 */
+    z-index: -1;          /* 텍스트 글자보다 뒤쪽에 깔리도록 설정 */
+    opacity: 0;           /* 평소에는 투명하게 숨김 */
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* 등급 변경 시 부드럽게 나타나도록 페이드 효과 지정 */
+}
+
+
+/* ------------------------------------------
+   1. 영웅 (Epic) 등급 비주얼 효과
+   ------------------------------------------
+   - 작동 방식: 텍스트 자체 색상을 보라색(#ff55ff)으로 고정하고, 
+     글자 주변에 은은하게 퍼지는 3중 텍스트 섀도우를 씌운 뒤,
+     시간에 따라 그림자 반경이 커지고 작아지는 애니메이션(epicGlowPulse)을 교차 반복 적용합니다.
+*/
+.epic-aura .aura-name {
+    color: #ff55ff;
+    /* floating(둥둥 뜨는 기본 움직임)과 epicGlowPulse(빛 고동 효과) 두 가지 애니메이션을 동시에 적용 */
+    animation: floating 3s ease-in-out infinite, epicGlowPulse 2s infinite alternate;
+}
+
+/* 영웅 등급 전용 빛 퍼짐 애니메이션 키프레임 */
+@keyframes epicGlowPulse {
+    0% {
+        /* 은은하게 퍼지는 중간 단계의 보랏빛 그림자 */
+        text-shadow: 0 0 25px rgba(255, 85, 255, 0.5), 
+                     0 0 10px rgba(255, 85, 255, 0.3);
+    }
+    100% {
+        /* 최대 60px 너비로 강렬하게 팽창하며 번지는 네온 보랏빛 그림자 */
+        text-shadow: 0 0 60px rgba(255, 85, 255, 1.0), 
+                     0 0 30px rgba(255, 85, 255, 0.7),
+                     0 0 15px rgba(255, 85, 255, 0.4);
+    }
+}
+
+
+/* ------------------------------------------
+   2. 신화 (Mythic) 등급 비주얼 효과
+   ------------------------------------------
+   - 작동 방식: 텍스트 뒷배경 요소(.aura-effect-bg)에 신화의 강렬한 붉은 광원을
+     방사형 그라데이션(radial-gradient)으로 채운 뒤, clip-path 다각형 클리핑 기법으로 
+     사각별 테두리만 오려냅니다. 그리고 15초 동안 360도 천천히 회전(rotateStar)시킵니다.
+*/
+.mythic-aura .aura-effect-bg {
+    opacity: 0.35; /* 너무 쨍하지 않게 약간 반투명 처리 */
+    background: radial-gradient(circle, rgba(255, 51, 51, 0.8) 0%, transparent 70%);
+    
+    /* 
+       [clip-path 다각형 생성 규칙]
+       각 좌표%를 이어붙여서 날카로운 4개의 뿔을 가진 사각별(네 축의 꼭짓점)을 그립니다.
+    */
+    clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
+    
+    /* 무한하게 시계방향으로 회전하는 애니메이션 */
+    animation: rotateStar 15s linear infinite;
+}
+
+/* 신화 전용 배경 사각별 회전 애니메이션 키프레임 */
+@keyframes rotateStar {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+
+/* ------------------------------------------
+   3. 전설 (Legendary) 등급 비주얼 효과
+   ------------------------------------------
+   - 작동 방식: 
+     1) background-image에 그라데이션 선언
+     2) -webkit-background-clip: text를 통해 그라데이션이 글자 모양 내부에만 채워지게 함
+     3) -webkit-text-fill-color: transparent를 통해 기본 텍스트 검정 색상을 지우고 배경을 보여줌
+     4) filter: drop-shadow를 2중으로 쌓아 글자의 테두리를 어둡게 강조함과 동시에 골드 오라 글로우 효과를 입혀 가독성 극대화
+*/
+.legendary-aura .aura-name {
+    /* 노란빛에서 오렌지빛으로 자연스럽게 이어지는 사선 그라데이션 */
+    background: linear-gradient(135deg, #ffe57f 0%, #ffaa00 50%, #ff6f00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block; /* 브라우저 렌더링에 안정적인 영역 계산을 위해 인라인 블록 적용 */
+    
+    /* 
+       이중 필터 드롭 섀도우: 
+       - 첫 번째 (0 2px 3px 0.85): 어두운 그림자를 가까이 뿌려 글자 외곽선을 뚜렷하게 잡아 읽기 편하게 함
+       - 두 번째 (0 0 10px 0.6): 글자 뒷바탕에 노란색 네온 안개를 씌움
+    */
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 10px rgba(255, 170, 0, 0.6));
+    animation: floating 3s ease-in-out infinite;
+}
